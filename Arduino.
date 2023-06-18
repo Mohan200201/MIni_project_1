@@ -1,0 +1,80 @@
+#include <LiquidCrystal_I2C.h>
+LiquidCrystal_I2C lcd(0x3F,16,2); // set the LCD address to 0x3F for a 16 chars and 2 line display
+#include <OneWire.h>
+#include <DallasTemperature.h>
+#define ONE_WIRE_BUS 2
+OneWire oneWire(ONE_WIRE_BUS);
+DallasTemperature sensors(&oneWire);
+void setup() 
+{ 
+ Serial.begin(9600);
+ //motor
+ pinMode(8,OUTPUT);
+ pinMode(9,OUTPUT);
+ pinMode(10,OUTPUT);
+ pinMode(11,OUTPUT);
+ //lcd
+ lcd.init();
+ lcd.clear(); 
+ lcd.backlight(); // Make sure backlight is on
+ 
+ // Print a message on both lines of the LCD.
+ lcd.setCursor(6,0); //Set cursor to character 2 on line 0
+ lcd.print("READY");
+ //temp sensor
+ sensors.begin();
+ //turbidity
+ pinMode(A1,OUTPUT);
+}
+void loop() 
+{
+ float tempC;
+ int sensorValue,phval;
+ float sensorval;
+ digitalWrite(8,LOW);
+ digitalWrite(9,HIGH);
+ digitalWrite(10,LOW);
+ digitalWrite(11,HIGH);
+ delay(3000);
+ digitalWrite(8,LOW);
+ digitalWrite(9,LOW);
+ digitalWrite(10,LOW);
+ digitalWrite(11,LOW);
+ for(int i=0;i<5;i++)
+ {
+ sensors.requestTemperatures(); // Send the command to get temperatures
+ Serial.println("DONE");
+ tempC = sensors.getTempCByIndex(0);
+ if(tempC != DEVICE_DISCONNECTED_C) 
+ {
+ Serial.print("Temperature for the device 1 (index 0) is: ");
+ Serial.println(tempC);
+ } 
+ else
+ {
+ Serial.println("Error: Could not read temperature data");
+ }
+ sensorValue=analogRead(A1);
+ Serial.println(sensorValue);
+ phval=analogRead(A0);
+ sensorval=1.8*phval*5/1024;
+ Serial.println(sensorval);
+ delay(500);
+ 
+ }
+ lcd.clear();
+ lcd.setCursor(1,0);
+ lcd.print("T:");
+ lcd.print(tempC);
+ lcd.print(" TR:");
+ lcd.print(sensorValue);
+ lcd.setCursor(1,1);
+ lcd.print("PH :");
+ lcd.println(sensorval);
+ for(;;)
+ {
+ }
+ 
+ 
+ 
+}
